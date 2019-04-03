@@ -1,0 +1,15 @@
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\bin\Debug\mrpFS.AutoTest.Lib.dll
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\bin\Debug\mrpFS.AutoTest.Lib.pdb
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\bin\Debug\WebDriver.dll
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\obj\Debug\mrpFS.AutoTest.Lib.csproj.CoreCompileInputs.cache
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\obj\Debug\mrpFS.AutoTest.Lib.csproj.CopyComplete
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\obj\Debug\mrpFS.AutoTest.Lib.dll
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\obj\Debug\mrpFS.AutoTest.Lib.pdb
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\bin\Debug\Newtonsoft.Json.dll
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\bin\Debug\WebDriver.Support.dll
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\bin\Debug\LinqToExcel.dll
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\bin\Debug\Remotion.Data.Linq.dll
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\bin\Debug\Remotion.dll
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\bin\Debug\Remotion.Interfaces.dll
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\obj\Debug\mrpFS.AutoTest.Lib.csprojAssemblyReference.cache
+C:\Dev\mrpFS.AutoTest\mrpFS.AutoTest.Lib\bin\Debug\SharpAvi.dll

@@ -1,0 +1,15 @@
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\bin\Debug\LinqToExcel.dll
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\bin\Debug\Newtonsoft.Json.dll
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\bin\Debug\Remotion.Data.Linq.dll
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\bin\Debug\Remotion.dll
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\bin\Debug\Remotion.Interfaces.dll
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\bin\Debug\SharpAvi.dll
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\bin\Debug\WebDriver.dll
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\bin\Debug\WebDriver.Support.dll
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\obj\Debug\Infinity.Automation.Lib.csproj.CoreCompileInputs.cache
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\obj\Debug\Infinity.Automation.Lib.csproj.CopyComplete
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\bin\Debug\Infinity.Automation.Lib.dll
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\bin\Debug\Infinity.Automation.Lib.pdb
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\obj\Debug\Infinity.Automation.Lib.dll
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\obj\Debug\Infinity.Automation.Lib.pdb
+C:\Dev\Inifinity.Automation\Infinity.Auto.Lib\obj\Debug\Infinity.Automation.Lib.csprojAssemblyReference.cache

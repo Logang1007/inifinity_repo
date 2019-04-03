@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2019
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inifnity.Automation", "Inifnity.Automation.csproj", "{C35EA3CB-238C-41F6-96E6-7894455AD189}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infinity.Automation.Lib", "..\Infinity.Auto.Lib\Infinity.Automation.Lib.csproj", "{EA0E4007-8567-4857-9BAA-6BD0575C3A89}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C35EA3CB-238C-41F6-96E6-7894455AD189}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C35EA3CB-238C-41F6-96E6-7894455AD189}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C35EA3CB-238C-41F6-96E6-7894455AD189}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C35EA3CB-238C-41F6-96E6-7894455AD189}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA0E4007-8567-4857-9BAA-6BD0575C3A89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA0E4007-8567-4857-9BAA-6BD0575C3A89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA0E4007-8567-4857-9BAA-6BD0575C3A89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA0E4007-8567-4857-9BAA-6BD0575C3A89}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {17AFB1F5-FE63-49AA-8C17-D3EDDF836A3B}
+	EndGlobalSection
+EndGlobal
