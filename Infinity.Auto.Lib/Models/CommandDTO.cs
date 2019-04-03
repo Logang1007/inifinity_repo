@@ -13,6 +13,7 @@ namespace Infinity.Automation.Lib.Models
         public string Value = "";
         public string IDToClick = "";
         public string ClassNameToClick = "";
+        public string XPath = "";
         public AttributeToClick AttributeToClick { get; set; }
         public int IndexToClick { get; set; }
         public CommandResponseStatus CommandStatus { get; set; }
@@ -22,7 +23,7 @@ namespace Infinity.Automation.Lib.Models
         public bool Execute { get; set; }
         public int ExcelColIndexValue = -1;
         public DateNowValue DateNowValue { get; set; }
-
+        public bool OverrideErrorOnNotFound { get; set; }
         public CommandDTO()
         {
             ScreenShot = new ScreenShot();
@@ -30,6 +31,7 @@ namespace Infinity.Automation.Lib.Models
             AppendRandomToValue = new AppendRandomToValue();
             Execute = true;
             DateNowValue = new DateNowValue();
+            OverrideErrorOnNotFound = false;
         }
 
     }

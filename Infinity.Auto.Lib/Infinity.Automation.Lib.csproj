@@ -80,6 +80,8 @@
     <Compile Include="Engine\ICommandManager.cs" />
     <Compile Include="Helpers\EmailHelper.cs" />
     <Compile Include="Helpers\IEmailHelper.cs" />
+    <Compile Include="Helpers\IImpersonateUser.cs" />
+    <Compile Include="Helpers\ImpersonateUser.cs" />
     <Compile Include="Helpers\IScreenRecorderHelper.cs" />
     <Compile Include="Helpers\ScreenRecorderHelper.cs" />
     <Compile Include="Models\CommandDTO.cs" />

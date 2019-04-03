@@ -35,6 +35,7 @@ namespace mrpFS.AutoTest
        private static IEmailHelper _emailHelper;
        private static ICommandManager _commandManager;
        private static IScreenRecorderHelper screenRecorderHelper;
+        private static IImpersonateUser _impersonateUser;
 
         /// <summary>
         /// The main entry point for the application.
@@ -47,6 +48,13 @@ namespace mrpFS.AutoTest
             if (arguments.Count() > 0)
             {
                 NativeMethods.AllocConsole();
+
+                int port = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["EmailPortNumber"]);
+                string smtp = System.Configuration.ConfigurationManager.AppSettings["EmailSMTP"];
+                _emailHelper = new EmailHelper(smtp, port);
+
+                _impersonateUser = new ImpersonateUser();
+
                 string folderPath = arguments[0];
                 Console.WriteLine("******************Infinity.Automation Tester v1.0.0*******************");
                 Console.WriteLine("Started :" + DateTime.Now);
@@ -68,11 +76,9 @@ namespace mrpFS.AutoTest
                         previousDirPath = dirPath;
                         DirectoryInfo di = new DirectoryInfo(dirPath);
                         Console.WriteLine("Running tests in sub-directory :" + di.Name + "...please wait...");
-                        int port = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["EmailPortNumber"]);
-                        string smtp = System.Configuration.ConfigurationManager.AppSettings["EmailSMTP"];
-                        _emailHelper = new EmailHelper(smtp, port);
+                        
                         screenRecorderHelper = new ScreenRecorderHelper();
-                        _commandManager = new CommandManager(dirPath, true, _emailHelper, screenRecorderHelper, _onCommandManagerInitComplete);
+                        _commandManager = new CommandManager(dirPath, true, _emailHelper, _impersonateUser, screenRecorderHelper, _onCommandManagerInitComplete);
                         _commandManager.ExecuteCommands(_commandManager.TestObjectDTO, _onTestRunComplete, _onTestCommandComplete, _onAllTestRunComplete);
                     }
 

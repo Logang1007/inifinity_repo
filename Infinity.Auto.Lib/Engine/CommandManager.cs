@@ -2,6 +2,7 @@
 using Infinity.Automation.Lib.Models;
 using LinqToExcel;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.IE;
@@ -13,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,10 +22,10 @@ using static Infinity.Automation.Lib.Models.Enums;
 
 namespace Infinity.Automation.Lib.Engine
 {
-    public class CommandManager: ICommandManager
+    public class CommandManager : ICommandManager
     {
 
-      
+
 
         public List<TestObjectDTO> TestObjectDTO { get; set; }
         public IWebDriver WebDriver;
@@ -31,10 +33,11 @@ namespace Infinity.Automation.Lib.Engine
         private IScreenRecorderHelper _screenRecorderHelper;
         private bool _isTestIncludeRunning = false;
         private string _lastTestIncludeRan = "";
-        
-        public CommandManager(string path,bool isDirectory, IEmailHelper emailHelper, IScreenRecorderHelper screenRecorderHelper, OnCommandManagerInitComplete onCommandManagerInitComplete,string testExtFilter="*.tst")
+        private IImpersonateUser _impersonateUser;
+        public CommandManager(string path, bool isDirectory, IEmailHelper emailHelper, IImpersonateUser impersonateUser, IScreenRecorderHelper screenRecorderHelper, OnCommandManagerInitComplete onCommandManagerInitComplete, string testExtFilter = "*.tst")
         {
             _emailHelper = emailHelper;
+            _impersonateUser = impersonateUser;
             _screenRecorderHelper = screenRecorderHelper;
             TestObjectDTO = new List<TestObjectDTO>();
 
@@ -45,7 +48,7 @@ namespace Infinity.Automation.Lib.Engine
                     var files = Directory.GetFiles(path, testExtFilter);
                     if (files.Length == 0)
                     {
-                        onCommandManagerInitComplete(ResponseStatus.Failed,"The directory must contain sub-directories with tests inside!");
+                        onCommandManagerInitComplete(ResponseStatus.Failed, "The directory must contain sub-directories with tests inside!");
                     }
                     else
                     {
@@ -56,7 +59,7 @@ namespace Infinity.Automation.Lib.Engine
                             TestObjectDTO.Add(testObjectDTO);
                         }
                     }
-                    
+
                 }
                 else
                 {
@@ -79,14 +82,14 @@ namespace Infinity.Automation.Lib.Engine
                     {
                         throw new Exception(path + " is not a valid test file, it must have a .tst extension!");
                     }
-                    
+
                 }
                 else
                 {
                     throw new Exception(path + " file doesnot exist!");
                 }
-                
-               
+
+
             }
 
         }
@@ -97,8 +100,10 @@ namespace Infinity.Automation.Lib.Engine
             var fi = new FileInfo(fulltestFilePath);
             var fileText = File.ReadAllText(fulltestFilePath);
             if (!string.IsNullOrEmpty(fileText))
-            {
+            {   
                 var testObjectDTO = JsonConvert.DeserializeObject<TestObjectDTO>(fileText);
+                //string testStr = JsonConvert.SerializeObject(testObjectDTO);
+               // string jsonFormatted = JValue.Parse(testStr).ToString(Formatting.Indented);
 
                 testObjectDTO.TestDetail.FileName = fi.Name;
                 testObjectDTO.TestDetail.FilePath = fulltestFilePath;
@@ -131,26 +136,36 @@ namespace Infinity.Automation.Lib.Engine
             {
                 return new TestObjectDTO();
             }
-          
 
-          
+
+
         }
 
-        public TestResponseDTO ExecuteCommands(List<TestObjectDTO> testObjectDTO,OnTestRunComplete onTestRunComplete, 
+       
+
+        public TestResponseDTO ExecuteCommands(List<TestObjectDTO> testObjectDTO, OnTestRunComplete onTestRunComplete,
             OnTestCommandComplete onTestCommandComplete, OnAllTestRunComplete onAllTestRunComplete)
         {
             TestResponseDTO returnValue = new TestResponseDTO();
             returnValue.CommandsExecuted = new List<CommandDTO>();
             int currentTestRunNumber = 1;
-            
+
 
             try
             {
+                
+
                 //init the browser object
                 foreach (var testObj in testObjectDTO)
                 {
                     returnValue.TestDetailDTO = new TestDetailDTO();
                     returnValue.TestDetailDTO = testObj.TestDetail;
+
+                    //impersonate windows user
+                    if (returnValue.TestDetailDTO.ImpersonateUser.Apply == true)
+                    {
+                        _impersonateUser.Impersonate(returnValue.TestDetailDTO.ImpersonateUser.UserName, returnValue.TestDetailDTO.ImpersonateUser.Password);
+                    }
 
                     if (testObj.TestDetail.TestIncludeToRunFirst != _lastTestIncludeRan)
                     {
@@ -170,7 +185,7 @@ namespace Infinity.Automation.Lib.Engine
 
                     }
 
-                   
+
 
                     int totalIterations = testObj.TestDetail.NumberOfIterations;
                     if (testObj.TestDetail.ExcelDocument.Data.Count > 0)
@@ -199,7 +214,7 @@ namespace Infinity.Automation.Lib.Engine
                         }
                         else
                         {
-                            
+
                             if (WebDriver == null)
                             {
                                 _setWebDriver(testObj.TestDetail);
@@ -211,22 +226,22 @@ namespace Infinity.Automation.Lib.Engine
                         testObj.TestDetail.RecordVideo = _recordVideo(testObj.TestDetail, currentTestRunNumber);
 
 
-                         //now execute the command for each test object
-                         CommandDTO currentCommandExecuted = new CommandDTO();
-                        foreach (var cmd in testObj.Commands.Where(c=>c.Execute==true).ToList())
+                        //now execute the command for each test object
+                        CommandDTO currentCommandExecuted = new CommandDTO();
+                        foreach (var cmd in testObj.Commands.Where(c => c.Execute == true).ToList())
                         {
-                           
+
                             cmd.Value = _applyRandomToValue(cmd.Value, cmd.AppendRandomToValue);
                             if (cmd.ExcelColIndexValue > -1)
                             {
-                                cmd.Value = _getExcelColValue(cmd.Value,rowIndex, cmd.ExcelColIndexValue, testObj.TestDetail.ExcelDocument);
+                                cmd.Value = _getExcelColValue(cmd.Value, rowIndex, cmd.ExcelColIndexValue, testObj.TestDetail.ExcelDocument);
                             }
                             cmd.Value = _getDateNowValue(cmd.Value, cmd.DateNowValue);
 
                             switch (cmd.CommandType)
                             {
                                 case CommandType.Click:
-                                    currentCommandExecuted=_executeClick(cmd,ref returnValue);
+                                    currentCommandExecuted = _executeClick(cmd, ref returnValue);
                                     returnValue.TestRunNumber = currentTestRunNumber;
 
                                     break;
@@ -279,7 +294,7 @@ namespace Infinity.Automation.Lib.Engine
                                 throw new Exception(returnValue.ResponseMessage);
                             }
 
-                            
+
                         }
 
                         //stop video recording
@@ -287,7 +302,7 @@ namespace Infinity.Automation.Lib.Engine
                         {
                             _screenRecorderHelper.Dispose();
                         }
-                        
+
 
                         onTestRunComplete(returnValue);
                         _createOutput(testObj, currentTestRunNumber, listCurrentCommands);
@@ -298,16 +313,16 @@ namespace Infinity.Automation.Lib.Engine
                             CleanUp();
                         }
 
-                        
+
                     }
 
                     
 
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-
+                
                 returnValue.ResponseDetail = ex.StackTrace;
                 returnValue.ResponseMessage = ex.Message;
                 returnValue.ResponseStatus = ResponseStatus.SystemError;
@@ -315,18 +330,18 @@ namespace Infinity.Automation.Lib.Engine
                 CleanUp();
             }
 
-            
+
             if (returnValue.ResponseStatus != ResponseStatus.Success)
             {
                 var data = returnValue.CommandsExecuted.FirstOrDefault(i => i.CommandStatus == CommandResponseStatus.Failed);
                 if (data != null)
                 {
-                    returnValue.ResponseDetail = "Cmd failed:"+ data.CommandType.ToString()+"("+ data.IDToClick + ")" +"." +returnValue.ResponseDetail;
+                    returnValue.ResponseDetail = "Cmd failed:" + data.CommandType.ToString() + "(" + data.IDToClick + ")" + "." + returnValue.ResponseDetail;
                 }
-                
+
             }
 
-            
+
 
             if (_isTestIncludeRunning)
             {
@@ -351,7 +366,7 @@ namespace Infinity.Automation.Lib.Engine
         {
             try
             {
-                
+                _impersonateUser.UndoImpersonation();
 
                 if (WebDriver != null)
                 {
@@ -362,10 +377,12 @@ namespace Infinity.Automation.Lib.Engine
             {
 
             }
-           
+
         }
 
-        private RecordVideo _recordVideo(TestDetailDTO testObj,int currentTestRunNumber)
+        
+
+        private RecordVideo _recordVideo(TestDetailDTO testObj, int currentTestRunNumber)
         {
             var returnValue = new RecordVideo();
             returnValue = testObj.RecordVideo;
@@ -382,7 +399,7 @@ namespace Infinity.Automation.Lib.Engine
                 returnValue = testObj.RecordVideo;
 
                 _screenRecorderHelper.RecordScreen(new RecorderParams(videoFullFilePath, 10, SharpAvi.KnownFourCCs.Codecs.Xvid, 50, testObj.RecordVideo.ScreenNumber));
-                
+
             }
 
             return returnValue;
@@ -390,6 +407,10 @@ namespace Infinity.Automation.Lib.Engine
 
         private void _setWebDriver(TestDetailDTO testDetailDTO)
         {
+            //string appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            //FileInfo fi = new FileInfo(appPath);
+            //string dir = fi.Directory.FullName;
+
             switch (testDetailDTO.Browser)
             {
                 case AutoTestBrowser.chrome:
@@ -398,7 +419,7 @@ namespace Infinity.Automation.Lib.Engine
                     {
                         chromeOptions.AddArgument("headless");
                     }
-                    
+
                     WebDriver = new ChromeDriver(chromeOptions);
                     break;
                 case AutoTestBrowser.ie:
@@ -459,10 +480,10 @@ namespace Infinity.Automation.Lib.Engine
             return returnValue;
         }
 
-        private string _getDateNowValue(string value,DateNowValue dateNowValue)
+        private string _getDateNowValue(string value, DateNowValue dateNowValue)
         {
             string returnValue = value;
-            if (dateNowValue.Apply==true)
+            if (dateNowValue.Apply == true)
             {
                 var dateNow = DateTime.Now;
                 if (dateNowValue.DayAdd > 0)
@@ -487,10 +508,10 @@ namespace Infinity.Automation.Lib.Engine
 
             return returnValue;
         }
-        private string _getExcelColValue(string value,int rowIndex,int colIndex, ExcelDocument excelDocument)
+        private string _getExcelColValue(string value, int rowIndex, int colIndex, ExcelDocument excelDocument)
         {
             string returnValue = value;
-            if (excelDocument.Data.Count>0)
+            if (excelDocument.Data.Count > 0)
             {
                 returnValue = excelDocument.Data[rowIndex][colIndex].Data;
             }
@@ -510,7 +531,7 @@ namespace Infinity.Automation.Lib.Engine
             return value;
         }
 
-        private void _createOutput(TestObjectDTO testObj,int currentTestRunNumber, List<CommandDTO> listCurrentCommands)
+        private void _createOutput(TestObjectDTO testObj, int currentTestRunNumber, List<CommandDTO> listCurrentCommands)
         {
 
             if (testObj.TestDetail.OutPutFile.CreateOutPut == true)
@@ -522,7 +543,7 @@ namespace Infinity.Automation.Lib.Engine
                     File.Delete(newFileName);
                 }
 
-                string fullImageFilePath = testObj.TestDetail.OutputFullFilePath +"\\Screenshots";
+                string fullImageFilePath = testObj.TestDetail.OutputFullFilePath + "\\Screenshots";
 
 
                 StringBuilder sbContent = new StringBuilder();
@@ -540,7 +561,7 @@ namespace Infinity.Automation.Lib.Engine
                     outcome = "FAILED";
                     isSuccess = false;
                 }
-                sb.AppendLine("----------Outcome:"+ outcome + "-------------------");
+                sb.AppendLine("----------Outcome:" + outcome + "-------------------");
                 sb.AppendLine("");
                 sb.AppendLine("");
                 sb.AppendLine("----------Commands-------------------");
@@ -566,19 +587,23 @@ namespace Infinity.Automation.Lib.Engine
                     {
                         cmd.ScreenShot = new ScreenShot();
                     }
+                    if (cmd.XPath == null)
+                    {
+                        cmd.XPath = "";
+                    }
 
-                    string lineText=cmd.CommandType.ToString() + " [" + cmd.CommandStatus.ToString() + ":" + cmd.Message + "]-> Id:" + cmd.IDToClick + ",ClassName:" + cmd.ClassNameToClick + ",Value:" + cmd.Value + ",AttributeToClick: Name=" + cmd.AttributeToClick.Name + "&Value=" + cmd.AttributeToClick.Value + ",ScreenShot: Take=" + cmd.ScreenShot.Take + "&Value=" + cmd.ScreenShot.Name + ",IndexToClick:" + cmd.IndexToClick + ",ExcelColIndexValue:" + cmd.ExcelColIndexValue + ",DateNowValue: Apply=" + cmd.DateNowValue.Apply + "&DayAdd=" + cmd.DateNowValue.DayAdd + "&Format=" + cmd.DateNowValue.Format;
+                    string lineText = cmd.CommandType.ToString() + " [" + cmd.CommandStatus.ToString() + ":" + cmd.Message + "]-> Id:" + cmd.IDToClick + ",ClassName:" + cmd.ClassNameToClick + ",Value:" + cmd.Value + ",AttributeToClick: Name=" + cmd.AttributeToClick.Name + "&Value=" + cmd.AttributeToClick.Value + ",ScreenShot: Take=" + cmd.ScreenShot.Take + "&Value=" + cmd.ScreenShot.Name + ",IndexToClick:" + cmd.IndexToClick + ",ExcelColIndexValue:" + cmd.ExcelColIndexValue + ",DateNowValue: Apply=" + cmd.DateNowValue.Apply + "&DayAdd=" + cmd.DateNowValue.DayAdd + "&Format=" + cmd.DateNowValue.Format+ ",XPath:"+cmd.XPath;
                     sb.AppendLine(lineText);
                     sbContent.AppendLine(lineText);
                     //now save any images
-                    if (cmd.ScreenShot.Take == true && cmd.ScreenShot.Img!=null)
+                    if (cmd.ScreenShot.Take == true && cmd.ScreenShot.Img != null)
                     {
                         if (!Directory.Exists(fullImageFilePath))
                         {
                             Directory.CreateDirectory(fullImageFilePath);
                         }
 
-                        string imageFullName = fullImageFilePath+"\\No"+ currentTestRunNumber +"_"+ cmd.ScreenShot.Name + "_" + DateTime.Now.ToString("dd_MMM_yyyy_HH_mm_ss")+".png";
+                        string imageFullName = fullImageFilePath + "\\No" + currentTestRunNumber + "_" + cmd.ScreenShot.Name + "_" + DateTime.Now.ToString("dd_MMM_yyyy_HH_mm_ss") + ".png";
                         MemoryStream ms = new MemoryStream(cmd.ScreenShot.Img, 0, cmd.ScreenShot.Img.Length);
 
                         // Convert byte[] to Image
@@ -588,11 +613,11 @@ namespace Infinity.Automation.Lib.Engine
                         ms = null;
                         image = null;
                     }
-                   
+
 
 
                 }
-                    
+
 
                 sb.AppendLine("----------End-----------------------");
 
@@ -603,7 +628,7 @@ namespace Infinity.Automation.Lib.Engine
                 //send email
                 if (testObj.TestDetail.EmailResults.SendEmail == true)
                 {
-                   
+
                     string subject = testObj.TestDetail.EmailResults.Subject;
                     if (string.IsNullOrEmpty(testObj.TestDetail.EmailResults.Subject))
                     {
@@ -639,12 +664,12 @@ namespace Infinity.Automation.Lib.Engine
                     }
                     string folderLink = testObj.TestDetail.OutputFullFilePath.Replace(@"\", "/");
                     emailBody.AppendLine("<div class='med'>Date:" + DateTime.Now.ToString("dd MMM yyyy HH:mm:ss") + "</div>");
-                    emailBody.AppendLine("<div class='med'>Test Name:"+ testObj.TestDetail.Name + "</div>");
+                    emailBody.AppendLine("<div class='med'>Test Name:" + testObj.TestDetail.Name + "</div>");
                     emailBody.AppendLine("<div class='med'>Test Author:" + testObj.TestDetail.Author + "</div>");
                     emailBody.AppendLine("<div class='med'>Test Description:" + testObj.TestDetail.Description + "</div>");
-                    emailBody.AppendLine("<div class='med'>Test Results:can be found <a href='file://"+ folderLink + "'>here</a></div>");
+                    emailBody.AppendLine("<div class='med'>Test Results:can be found <a href='file://" + folderLink + "'>here</a></div>");
                     emailBody.AppendLine("<br/>");
-                    emailBody.AppendLine("<div class='"+ headerClass + "'>Test run "+ outcome + "</div>");
+                    emailBody.AppendLine("<div class='" + headerClass + "'>Test run " + outcome + "</div>");
                     emailBody.AppendLine("<br/>");
                     emailBody.AppendLine("<br/>");
                     emailBody.AppendLine("<div class='med'>Commands</div>");
@@ -668,12 +693,13 @@ namespace Infinity.Automation.Lib.Engine
 
         private IWebElement _findElement(CommandDTO cmd)
         {
+
             if (!string.IsNullOrEmpty(cmd.IDToClick))
             {
                 var elem = WebDriver.FindElement(By.Id(cmd.IDToClick));
                 if (elem == null)
                 {
-                    throw new Exception("Cannot find element by id :"+ cmd.IDToClick);
+                    throw new Exception("Cannot find element by id :" + cmd.IDToClick);
                 }
 
                 return elem;
@@ -682,6 +708,17 @@ namespace Infinity.Automation.Lib.Engine
             if (!string.IsNullOrEmpty(cmd.ClassNameToClick))
             {
                 var elem = WebDriver.FindElement(By.ClassName(cmd.ClassNameToClick));
+                if (elem == null)
+                {
+                    throw new Exception("Cannot find element by class name :" + cmd.ClassNameToClick);
+                }
+
+                return elem;
+            }
+
+            if (!string.IsNullOrEmpty(cmd.XPath))
+            {
+                var elem = WebDriver.FindElement(By.XPath(cmd.XPath));
                 if (elem == null)
                 {
                     throw new Exception("Cannot find element by class name :" + cmd.ClassNameToClick);
@@ -729,9 +766,9 @@ namespace Infinity.Automation.Lib.Engine
             if (cmdExec.ScreenShot.Take == true)
             {
                 Screenshot ss = ((ITakesScreenshot)WebDriver).GetScreenshot();
-               screenshotAsByteArray = ss.AsByteArray;
+                screenshotAsByteArray = ss.AsByteArray;
 
-                
+
             }
             returnValue.Name = cmdExec.ScreenShot.Name;
             returnValue.Img = screenshotAsByteArray;
@@ -739,9 +776,24 @@ namespace Infinity.Automation.Lib.Engine
             return returnValue;
         }
 
-      
+        private CommandDTO _getErrorCmd(CommandDTO cmdExec, Exception ex)
+        {
+            var returnValue = cmdExec;
+            if (cmdExec.OverrideErrorOnNotFound == true)
+            {
+                returnValue.CommandStatus = CommandResponseStatus.Success;
+                returnValue.Message = "Exception overridden";
+                return returnValue;
+            }
+            else
+            {
+                returnValue.CommandStatus = CommandResponseStatus.Failed;
+                returnValue.Message = ex.Message;
+                return cmdExec;
+            }
+        }
 
-        private CommandDTO _executeClick(CommandDTO cmd,ref TestResponseDTO testResponseDTO)
+        private CommandDTO _executeClick(CommandDTO cmd, ref TestResponseDTO testResponseDTO)
         {
             var cmdExec = cmd;
             cmdExec.CommandStatus = CommandResponseStatus.Success;
@@ -753,13 +805,12 @@ namespace Infinity.Automation.Lib.Engine
                 elem.Click();
                 testResponseDTO.CommandsExecuted.Add(cmdExec);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                cmdExec.CommandStatus = CommandResponseStatus.Failed;
-                cmdExec.Message = ex.Message;
-                testResponseDTO.CommandsExecuted.Add(cmdExec);
+                cmdExec = _getErrorCmd(cmdExec, ex);
+               
             }
-
+            testResponseDTO.CommandsExecuted.Add(cmdExec);
             return cmdExec;
         }
 
@@ -772,13 +823,12 @@ namespace Infinity.Automation.Lib.Engine
             {
                 cmdExec.ScreenShot = _takeScreenShot(cmdExec);
                 WebDriver.Navigate().GoToUrl(cmd.Value);
-                
+
             }
             catch (Exception ex)
             {
-                cmdExec.CommandStatus = CommandResponseStatus.Failed;
-                cmdExec.Message = ex.Message;
-               
+                cmdExec = _getErrorCmd(cmdExec, ex);
+
             }
 
             testResponseDTO.CommandsExecuted.Add(cmdExec);
@@ -799,9 +849,8 @@ namespace Infinity.Automation.Lib.Engine
             }
             catch (Exception ex)
             {
-                cmdExec.CommandStatus = CommandResponseStatus.Failed;
-                cmdExec.Message = ex.Message;
-                
+                cmdExec = _getErrorCmd(cmdExec, ex);
+
             }
 
             testResponseDTO.CommandsExecuted.Add(cmdExec);
@@ -821,14 +870,13 @@ namespace Infinity.Automation.Lib.Engine
                     var linkHref = elem.GetAttribute("href");
                     cmdExec.ScreenShot = _takeScreenShot(cmdExec);
                     WebDriver.Navigate().GoToUrl(linkHref);
-                    
+
                 }
             }
             catch (Exception ex)
             {
-                cmdExec.CommandStatus = CommandResponseStatus.Failed;
-                cmdExec.Message = ex.Message;
-                
+                cmdExec = _getErrorCmd(cmdExec, ex);
+
             }
 
             testResponseDTO.CommandsExecuted.Add(cmdExec);
@@ -849,8 +897,7 @@ namespace Infinity.Automation.Lib.Engine
             }
             catch (Exception ex)
             {
-                cmdExec.CommandStatus = CommandResponseStatus.Failed;
-                cmdExec.Message = ex.Message;
+                cmdExec = _getErrorCmd(cmdExec, ex);
             }
 
             testResponseDTO.CommandsExecuted.Add(cmdExec);
@@ -869,16 +916,15 @@ namespace Infinity.Automation.Lib.Engine
                 if (!body.Text.Contains(cmd.Value))
                 {
                     cmdExec.CommandStatus = CommandResponseStatus.Failed;
-                    cmdExec.Message = "Text("+ cmd.Value + ") does not exist on the page!";
+                    cmdExec.Message = "Text(" + cmd.Value + ") does not exist on the page!";
                 }
-                
-               
+
+
 
             }
             catch (Exception ex)
             {
-                cmdExec.CommandStatus = CommandResponseStatus.Failed;
-                cmdExec.Message = ex.Message;
+                cmdExec = _getErrorCmd(cmdExec, ex);
             }
 
             testResponseDTO.CommandsExecuted.Add(cmdExec);
@@ -892,7 +938,7 @@ namespace Infinity.Automation.Lib.Engine
             cmdExec.Message = "Success";
             try
             {
-                
+
                 IJavaScriptExecutor js = (IJavaScriptExecutor)WebDriver;
                 js.ExecuteScript(cmd.Value);
                 cmdExec.ScreenShot = _takeScreenShot(cmdExec);
@@ -900,8 +946,7 @@ namespace Infinity.Automation.Lib.Engine
             }
             catch (Exception ex)
             {
-                cmdExec.CommandStatus = CommandResponseStatus.Failed;
-                cmdExec.Message = ex.Message;
+                cmdExec = _getErrorCmd(cmdExec, ex);
             }
 
             testResponseDTO.CommandsExecuted.Add(cmdExec);
@@ -917,7 +962,7 @@ namespace Infinity.Automation.Lib.Engine
             {
 
                 var elem = _findElement(cmd);
-                
+
                 var selectElement = new SelectElement(elem);
                 selectElement.SelectByValue(cmd.Value);
 
@@ -926,8 +971,7 @@ namespace Infinity.Automation.Lib.Engine
             }
             catch (Exception ex)
             {
-                cmdExec.CommandStatus = CommandResponseStatus.Failed;
-                cmdExec.Message = ex.Message;
+                cmdExec = _getErrorCmd(cmdExec, ex);
             }
 
             testResponseDTO.CommandsExecuted.Add(cmdExec);
@@ -949,8 +993,7 @@ namespace Infinity.Automation.Lib.Engine
             }
             catch (Exception ex)
             {
-                cmdExec.CommandStatus = CommandResponseStatus.Failed;
-                cmdExec.Message = ex.Message;
+                cmdExec = _getErrorCmd(cmdExec, ex);
             }
 
             testResponseDTO.CommandsExecuted.Add(cmdExec);

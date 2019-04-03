@@ -28,6 +28,7 @@ namespace Infinity.Automation.Lib.Models
         public string TestIncludeToRunFirst = "";
         public BrowserOptions BrowserOptions { get; set; }
         public RecordVideo RecordVideo { get; set; }
+        public ExImpersonateUser ImpersonateUser { get; set; }
 
         public TestDetailDTO()
         {
@@ -35,6 +36,7 @@ namespace Infinity.Automation.Lib.Models
             EmailResults = new EmailResults() { SendEmail = false,FromEmail="",Subject="" };
             BrowserOptions = new BrowserOptions() { Maximized = false, ShowBrowser = true };
             RecordVideo = new RecordVideo() { Record = false, ScreenNumber = 1,OutPutFullPath="" };
+            ImpersonateUser = new ExImpersonateUser() { Apply = false, Password = "", UserName = "" };
         }
     }
 
@@ -76,6 +78,13 @@ namespace Infinity.Automation.Lib.Models
         public bool Record = true;
         public int ScreenNumber=1;
         public string OutPutFullPath = "";
+    }
+
+    public class ExImpersonateUser
+    {
+        public bool Apply = false;
+        public string UserName = "";
+        public string Password = "";
     }
 
 }
