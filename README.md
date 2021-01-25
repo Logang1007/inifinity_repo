@@ -63,7 +63,7 @@ A web automation framework that allows regression testing of web apps
 	"Description": "Decide which test to run",
 	"Browser":0,
 	"ShowTestRunningMessage":true,
-	"LoadURL": "https://demo6.hollywoodbets.net/",
+	"LoadURL": "https://someUrl.com/",
 	"SwitchTest":{If:"!FindElement('class','img-fluid',1222)",Then:"RunTest('.\\login_new_mob.tst')",Else:"RunTest('.\\login_new_mob2.tst')"},
 }
 
