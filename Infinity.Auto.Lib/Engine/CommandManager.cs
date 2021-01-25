@@ -96,7 +96,11 @@ namespace Infinity.Automation.Lib.Engine
                                 if (fi.Extension.ToLower().Replace(".", "") == "tst")
                                 {
                                     var testObjectDTO = _parseTestFile(item);
-                                    TestObjectDTO.Add(testObjectDTO);
+                                    if(testObjectDTO.TestDetail.RunTest == true)
+                                    {
+                                        TestObjectDTO.Add(testObjectDTO);
+                                    }
+                                   
                                 }
 
                             }
@@ -125,7 +129,11 @@ namespace Infinity.Automation.Lib.Engine
                             onCommandManagerInitComplete(ResponseStatus.Success, "Success");
 
                             var testObjectDTO = _parseTestFile(path);
-                            TestObjectDTO.Add(testObjectDTO);
+                            if (testObjectDTO.TestDetail.RunTest == true)
+                            {
+                                TestObjectDTO.Add(testObjectDTO);
+                            }
+                              
                         }
                      
                     }
@@ -255,7 +263,7 @@ namespace Infinity.Automation.Lib.Engine
             }
        
                 //init the browser object
-                foreach (var testObj in testObjectDTO.Where(x=>x.TestDetail.RunTest).ToList())
+                foreach (var testObj in testObjectDTO)
                 {
                    string testId = Guid.NewGuid().ToString();
                    testObj.TestDetail.TestId = testId;
