@@ -1,7 +1,5 @@
 ﻿
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Support.UI;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -32,7 +30,7 @@ namespace mrpFS.AutoTest
         {
             this.listBox1.Items.Clear();
             string path = @"C:\Dev\mrpAutomationTests";
-            int port = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["EmailPortNumber"]);
+            int port = System.Configuration.ConfigurationManager.AppSettings["EmailPortNumber"].ToString() =="" ? 0 :  Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["EmailPortNumber"]);
             string smtp = System.Configuration.ConfigurationManager.AppSettings["EmailSMTP"];
             //_emailHelper = new EmailHelper(smtp, port);
            // _commandManager = new CommandManager(path, true, _emailHelper, _onCommandManagerInitComplete);

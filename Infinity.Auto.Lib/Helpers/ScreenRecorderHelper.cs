@@ -12,6 +12,7 @@ using SharpAvi;
 using SharpAvi.Codecs;
 using SharpAvi.Output;
 
+
 namespace Infinity.Automation.Lib.Helpers
 {
     public class ScreenRecorderHelper: IScreenRecorderHelper, IDisposable
@@ -26,7 +27,7 @@ namespace Infinity.Automation.Lib.Helpers
         {
             Params = recorderParams;
             writer = Params.CreateAviWriter();
-
+            
             // Create video stream
             videoStream = Params.CreateVideoStream(writer);
             // Set only name. Other properties were when creating stream, 
@@ -114,12 +115,14 @@ namespace Infinity.Automation.Lib.Helpers
 
     public class RecorderParams
     {
-        public RecorderParams(string filename, int FrameRate, FourCC Encoder, int Quality,int screenNumber=0)
+        public RecorderParams(string filename, int FrameRate, FourCC Encoder, int Quality,int screenNumber=0,int additionalWidth=0,int additionalHeight=0)
         {
             FileName = filename;
             FramesPerSecond = FrameRate;
             Codec = Encoder;
             this.Quality = Quality;
+            this.AdditionalWidth = additionalWidth;
+            this.AdditionalHeight = additionalHeight;
 
             try
             {
@@ -131,9 +134,7 @@ namespace Infinity.Automation.Lib.Helpers
                 {
                     screenNumber = 1;
                 }
-
-                //Height = Screen.PrimaryScreen.Bounds.Height;
-                //Width = Screen.PrimaryScreen.Bounds.Width;
+         
 
                 Height = screens[screenNumber].Bounds.Height;
                 Width = screens[screenNumber].Bounds.Width;
@@ -142,12 +143,13 @@ namespace Infinity.Automation.Lib.Helpers
                 Height = Screen.PrimaryScreen.Bounds.Height;
                 Width = Screen.PrimaryScreen.Bounds.Width;
             }
-
+            Width = Width + AdditionalWidth;
+            Height = Height + AdditionalHeight;
 
         }
 
-        string FileName;
-        public int FramesPerSecond, Quality;
+        public string FileName;
+        public int FramesPerSecond, Quality, AdditionalWidth, AdditionalHeight;
         FourCC Codec;
 
         public int Height { get; private set; }
@@ -171,6 +173,7 @@ namespace Infinity.Automation.Lib.Helpers
                 return writer.AddMotionJpegVideoStream(Width, Height, Quality);
             else
             {
+                
                 return writer.AddMpeg4VideoStream(Width, Height, (double)writer.FramesPerSecond,
                     // It seems that all tested MPEG-4 VfW codecs ignore the quality affecting parameters passed through VfW API
                     // They only respect the settings from their own configuration dialogs, and Mpeg4VideoEncoder currently has no support for this

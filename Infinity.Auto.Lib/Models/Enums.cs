@@ -40,7 +40,16 @@ namespace Infinity.Automation.Lib.Models
             AssertTextExists=5,
             ExecuteJS=6,
             SelectDropDown=7,
-            WaitSecond=8
+            WaitSecond=8,
+            ExecuteSQL = 9,
+            SetVariable = 10,
+            TypeTextMany = 11,
+            ClickMany = 12,
+            SwitchClick = 13,
+            AssertElementsOrder = 14,
+            AssertElementValueEquals= 15,
+            ClickDropDown = 16,
+            AssertElementCount = 17,
         }
     }
 }

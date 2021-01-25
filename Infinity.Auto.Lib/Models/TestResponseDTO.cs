@@ -19,11 +19,16 @@ namespace Infinity.Automation.Lib.Models
         public TestDetailDTO TestDetailDTO { get; set; }
 
         public List<CommandDTO> CommandsExecuted { get; set; }
+        public int TotalIterations { get; set; }
+        public bool IsPassed { get; set; }
+        public TimeTakenDTO TimeTaken { get; set; }
+        public bool IsTestFailed { get; set; }
 
         public TestResponseDTO()
         {
             ResponseStatus = ResponseStatus.Success;
             ResponseMessage = "Success";
+            TimeTaken = new TimeTakenDTO();
         }
     }
 

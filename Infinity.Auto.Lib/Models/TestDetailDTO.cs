@@ -9,6 +9,8 @@ namespace Infinity.Automation.Lib.Models
 {
     public class TestDetailDTO
     {
+        public string TestUniqueCode { get; set; }
+        public string TestId { get; set; }
         public string Name { get; set; }
         public string Author { get; set; }
 
@@ -29,7 +31,15 @@ namespace Infinity.Automation.Lib.Models
         public BrowserOptions BrowserOptions { get; set; }
         public RecordVideo RecordVideo { get; set; }
         public ExImpersonateUser ImpersonateUser { get; set; }
+        public string ResultsFolder { get; set; }
+        public bool DoesContainAngular { get; set; }
+        public string ResponseMessage { get; set; }
+        public TimeTakenDTO TimeTaken { get; set; }
+        public SimulateNetworkCondition SimulateNetworkCondition { get; set; }
 
+        public bool ShowTestRunningMessage { get; set; }
+        public bool RunTest { get; set; } = true;
+        
         public TestDetailDTO()
         {
             ExcelDocument = new ExcelDocument() { Use = false };
@@ -37,6 +47,13 @@ namespace Infinity.Automation.Lib.Models
             BrowserOptions = new BrowserOptions() { Maximized = false, ShowBrowser = true };
             RecordVideo = new RecordVideo() { Record = false, ScreenNumber = 1,OutPutFullPath="" };
             ImpersonateUser = new ExImpersonateUser() { Apply = false, Password = "", UserName = "" };
+            TimeTaken = new TimeTakenDTO();
+            SimulateNetworkCondition = new SimulateNetworkCondition() { Enabled = false, 
+                DownloadSpeed = DownloadSpeed.Default,
+                UploadSpeed = UploadSpeed.Default,
+                LatencySeconds = 1,
+                IsOffline=false
+            };
         }
     }
 
@@ -78,6 +95,9 @@ namespace Infinity.Automation.Lib.Models
         public bool Record = true;
         public int ScreenNumber=1;
         public string OutPutFullPath = "";
+        public int AdditionalWidth { get; set; } = 0;
+        public int AdditionalHeight { get; set; } = 0;
+        public int Quality { get; set; } = 15;
     }
 
     public class ExImpersonateUser
@@ -87,4 +107,30 @@ namespace Infinity.Automation.Lib.Models
         public string Password = "";
     }
 
+    public class SimulateNetworkCondition
+    {
+        public bool Enabled { get; set; }
+        public DownloadSpeed DownloadSpeed { get; set; }
+        public UploadSpeed UploadSpeed { get; set; }
+        public int LatencySeconds { get; set; }
+        public bool IsOffline { get; set; }
+    }
+
+    public enum DownloadSpeed
+    {
+        Default = 0,
+        VerySlow =1,
+        Slow=2,
+        Fast=3,
+        VeryFast=4
+    }
+
+    public enum UploadSpeed
+    {
+        Default = 0,
+        VerySlow = 1,
+        Slow = 2,
+        Fast = 3,
+        VeryFast = 4
+    }
 }

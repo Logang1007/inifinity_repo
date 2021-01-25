@@ -1,0 +1,88 @@
+{
+  "TestDetail": {
+    "ExcelColIndexValue": -1,
+    "Description": "Hollywood Variables",
+    "TestIncludeToRunFirst": "",
+    "Name": "Test variables setup",
+    "Author": "Logan Govender",
+    "FileName": null,
+    "FilePath": null,
+    "DirectoryPath": null,
+    "OutputFullFilePath": null,
+    "OutPutFile": {
+      "AppendTimeToFolderName": true,
+      "FolderPath": "",
+      "CreateOutPut": true
+    },
+    "Browser": 0,
+    "NumberOfIterations": 1,
+    "ExcelDocument": {
+      "Use": false,
+      "ExcelDocumentPath": null,
+      "WorkSheetName": null,
+      "Data": null
+    },
+    "EmailResults": {
+      "SendEmail": false,
+      "FromEmail": "",
+      "Subject": "",
+      "EmailTo": [
+        ""
+      ]
+    },
+    "BrowserOptions": {
+      "ShowBrowser": true,
+      "Maximized": true
+    },
+    "RecordVideo": {
+      "Record": false,
+      "ScreenNumber": 1,
+      "OutPutFullPath": ""
+    },
+    "ImpersonateUser": {
+      "Apply": false,
+      "UserName": "",
+      "Password": ""
+    },
+	"ShowTestRunningMessage":true,
+  },
+  "Commands": [
+   {
+      "Value": "",
+      "IDToClick": "",
+      "ClassNameToClick": "",
+      "XPath": "",
+      "Message": "",
+      "ExcelColIndexValue": -1,
+      "CommandType": 10,
+      "AttributeToClick": {
+        "Name": "",
+        "Value": ""
+      },
+      "IndexToClick": 0,
+      "CommandStatus": 0,
+      "ScreenShot": {
+        "Take": false,
+        "Name": "",
+        "Img": null
+      },
+      "AppendRandomToValue": {
+        "Min": 50,
+        "Max": 100,
+        "Apply": false
+      },
+      "Execute": true,
+      "DateNowValue": {
+        "DayAdd": 0,
+        "Format": null,
+        "Apply": false
+      },
+      "OverrideErrorOnNotFound": false,
+	  "VariablesToSet":[
+	  {"name":"newmoburl","value":"https://demo6.hollywoodbets.net/"},
+	  {"name":"default_username","value":"246510"},
+	  {"name":"default_userpassword","value":"2468"},
+	  {"name":"db_uat_syx_betgames_conn_string","value":"data source=UAT-SYX-SQL3;initial catalog=BetGames;MultipleActiveResultSets=True;App=EntityFramework;persist security info=True; Integrated Security=SSPI;"}
+	  ]
+    }]
+}

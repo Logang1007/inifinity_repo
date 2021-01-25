@@ -11,13 +11,17 @@ namespace Infinity.Automation.Lib.Engine
 {
 
     public delegate void OnCommandManagerInitComplete(ResponseStatus responseStatus,string message);
+    public delegate void OnTestRunStarted(TestDetailDTO testDetail);
     public delegate void OnTestRunComplete(TestResponseDTO testResponseDTO);
     public delegate void OnTestCommandComplete(CommandDTO commandDTO);
-    public delegate void OnAllTestRunComplete(TestResponseDTO commandDTO);
+    public delegate void OnAllTestRunComplete(List<TestResponseDTO> commandDTO);
     public interface ICommandManager
     {
         List<TestObjectDTO> TestObjectDTO { get; set; }
-        TestResponseDTO ExecuteCommands(List<TestObjectDTO> testObjectDTO, OnTestRunComplete onTestRunComplete, OnTestCommandComplete onTestCommandComplete, OnAllTestRunComplete onAllTestRunComplete);
+        List<TestResponseDTO> ExecuteCommands(List<TestObjectDTO> testObjectDTO, OnTestRunComplete onTestRunComplete, OnTestCommandComplete onTestCommandComplete, OnAllTestRunComplete onAllTestRunComplete, OnTestRunStarted onTestRunStarted);
         void CleanUp();
+        void CreateFinalOutputOfResults(List<TestResponseDTO> testResponseDTO);
     }
+
+  
 }

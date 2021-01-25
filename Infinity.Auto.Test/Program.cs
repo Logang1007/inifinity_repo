@@ -2,6 +2,7 @@
 using Infinity.Automation.Lib.Engine;
 using Infinity.Automation.Lib.Helpers;
 using Infinity.Automation.Lib.Models;
+using mrpFS.AutoTest;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static Infinity.Automation.Lib.Models.Enums;
 
-namespace mrpFS.AutoTest
+namespace infinity.AutoTest
 {
     static class Program
     {
@@ -36,6 +37,7 @@ namespace mrpFS.AutoTest
        private static ICommandManager _commandManager;
        private static IScreenRecorderHelper screenRecorderHelper;
         private static IImpersonateUser _impersonateUser;
+        private static bool _isDebugInfo = false;
 
         /// <summary>
         /// The main entry point for the application.
@@ -49,7 +51,12 @@ namespace mrpFS.AutoTest
             {
                 NativeMethods.AllocConsole();
 
-                int port = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["EmailPortNumber"]);
+                if(arguments.Count() > 1)
+                {
+                    _isDebugInfo = arguments[0].ToString().ToLower()=="true" || arguments[0].ToString().ToLower() == "1" ? true : false;
+                }
+                    
+                int port = System.Configuration.ConfigurationManager.AppSettings["EmailPortNumber"].ToString() == "" ? 0 : Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["EmailPortNumber"]);
                 string smtp = System.Configuration.ConfigurationManager.AppSettings["EmailSMTP"];
                 _emailHelper = new EmailHelper(smtp, port);
 
@@ -67,25 +74,60 @@ namespace mrpFS.AutoTest
                 string path = folderPath;
                 string previousDirPath = "";
                 var directories = Directory.GetDirectories(path);
+                var responses = new List<TestResponseDTO>();
+                var dirToUse = new List<string>();
+                foreach (var dir in directories)
+                {
+                    if (new DirectoryInfo(dir).Name.ToLower().StartsWith("results_"))
+                    {
+                        continue;
+                    }
+                    dirToUse.Add(dir);
+                }
 
-                foreach(var dir in directories)
+                if (dirToUse.Count == 0)
+                {
+                    dirToUse = new List<string>();
+                    dirToUse.Add(path);
+                }
+
+                IPortableDataStore portableDataStore = new PortableDataStore();
+                var portableDBPath = System.Configuration.ConfigurationManager.AppSettings["PortableDB"].ToString();
+                if (portableDBPath.StartsWith("\\"))
+                {
+                    portableDBPath = new FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).DirectoryName + portableDBPath;
+                }
+                portableDataStore.DBFullPath = portableDBPath;
+                portableDataStore.EnablePortablDB = System.Configuration.ConfigurationManager.AppSettings["EnablePortableDB"].ToString().ToLower()=="true";
+
+                foreach (var dir in dirToUse)
                 {
                     string dirPath = dir;
+                   
                     if (previousDirPath != dirPath)
                     {
                         previousDirPath = dirPath;
                         DirectoryInfo di = new DirectoryInfo(dirPath);
                         Console.WriteLine("Running tests in sub-directory :" + di.Name + "...please wait...");
                         
-                        screenRecorderHelper = new ScreenRecorderHelper();
-                        _commandManager = new CommandManager(dirPath, true, _emailHelper, _impersonateUser, screenRecorderHelper, _onCommandManagerInitComplete);
-                        _commandManager.ExecuteCommands(_commandManager.TestObjectDTO, _onTestRunComplete, _onTestCommandComplete, _onAllTestRunComplete);
+                        //screenRecorderHelper = new ScreenRecorderHelper();
+                        screenRecorderHelper = new ScreenRecorderHelperNew();
+                        string showMessagePrefix = System.Configuration.ConfigurationManager.AppSettings["ShowMessageTestRunningPrefix"].ToString();
+                        _commandManager = new CommandManager(dirPath, true, _emailHelper, _impersonateUser, screenRecorderHelper, _onCommandManagerInitComplete,"*.tst", _isDebugInfo, showMessagePrefix, portableDataStore);
+
+                        responses =(_commandManager.ExecuteCommands(_commandManager.TestObjectDTO, _onTestRunComplete, _onTestCommandComplete, _onAllTestRunComplete, _onTestRunStarted));
+                        if (!_isDebugInfo)
+                        {
+                            Console.WriteLine("Test completed :" + DateTime.Now);
+                        }
+                        _commandManager.CreateFinalOutputOfResults(responses);
+                        _onAllTestRunComplete(responses);
+                        
                     }
 
-                  
-
-
                 }
+
+               
 
                 Console.ReadLine();
             }
@@ -118,42 +160,57 @@ namespace mrpFS.AutoTest
             }
             Console.WriteLine("Initialize test command manager:" + responseStatus.ToString() + ":" + message);
         }
+
+        private static void _onTestRunStarted(TestDetailDTO testDetail)
+        {
+
+            Console.WriteLine("Test Started:" + testDetail.Name + "...."+DateTime.Now);
+        }
         private static void _onTestRunComplete(TestResponseDTO testResponseDTO)
         {
 
 
-            Console.WriteLine("Test completed:" + testResponseDTO.TestDetailDTO.Name + " : run number :" + testResponseDTO.TestRunNumber + "." + testResponseDTO.ResponseStatus.ToString() + "");
+            Console.WriteLine("Test completed:" + testResponseDTO.TestDetailDTO.Name + " : run number :" + testResponseDTO.TestRunNumber + "." + testResponseDTO.ResponseStatus.ToString() + "...." + DateTime.Now);
         }
 
         private static void _onTestCommandComplete(CommandDTO commandDTO)
         {
-            if (commandDTO.CommandStatus == CommandResponseStatus.Failed)
+            if (_isDebugInfo)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-
-            }
-            else
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-            }
-            Console.WriteLine("Command completed:" + commandDTO.CommandType.ToString() + "- ID: " + commandDTO.IDToClick.ToString() + "- Class: " + commandDTO.ClassNameToClick.ToString() + "- Value: " + commandDTO.Value + ": " + commandDTO.CommandStatus.ToString());
-        }
-
-        private static void _onAllTestRunComplete(TestResponseDTO testResponseDTO)
-        {
-            try
-            {
-                if (testResponseDTO.CommandsExecuted.Any(i => i.CommandStatus == CommandResponseStatus.Failed) || testResponseDTO.ResponseStatus != ResponseStatus.Success)
+                if (commandDTO.CommandStatus == CommandResponseStatus.Failed)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("All Tests completed: FAILED : " + testResponseDTO.TestDetailDTO.Name + " : run number :" + testResponseDTO.TestRunNumber + "." + testResponseDTO.ResponseStatus.ToString() + ":" + testResponseDTO.ResponseMessage);
-                    Console.WriteLine("ErrorStack:" + testResponseDTO.ResponseDetail);
+
                 }
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("All Tests completed: SUCCESS : " + testResponseDTO.TestDetailDTO.Name + " : run number :" + testResponseDTO.TestRunNumber + "." + testResponseDTO.ResponseStatus.ToString() + ":" + testResponseDTO.ResponseMessage);
                 }
+                Console.WriteLine("Command completed:" + commandDTO.CommandType.ToString() + "- ID: " + commandDTO.IDToClick.ToString() + "- Class: " + commandDTO.ClassNameToClick.ToString() + "- Value: " + commandDTO.Value + ": " + commandDTO.CommandStatus.ToString());
+            }
+            
+        }
+
+        private static void _onAllTestRunComplete(List<TestResponseDTO> testResponseDTO)
+        {
+            try
+            {
+                foreach(var item in testResponseDTO)
+                {
+                    if (item.CommandsExecuted.Any(i => i.CommandStatus == CommandResponseStatus.Failed) || item.ResponseStatus != ResponseStatus.Success)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Tests completed: FAILED : " + item.TestDetailDTO.Name + " : run number :" + item.TestRunNumber + "." + item.ResponseStatus.ToString() + ":" + item.ResponseMessage);
+                        Console.WriteLine("ErrorStack:" + item.ResponseDetail);
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("Tests completed: SUCCESS : " + item.TestDetailDTO.Name + " : run number :" + item.TestRunNumber + "." + item.ResponseStatus.ToString() + ":" + item.ResponseMessage);
+                    }
+                }
+                
+                
 
 
             }

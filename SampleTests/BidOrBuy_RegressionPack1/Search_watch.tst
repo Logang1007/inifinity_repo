@@ -78,14 +78,14 @@
       },
       "OverrideErrorOnNotFound": false
     },
-    {
-      "Value": "2",
+	{
+      "Value": "",
       "IDToClick": "",
       "ClassNameToClick": "",
       "XPath": "",
       "Message": "",
       "ExcelColIndexValue": -1,
-      "CommandType": 8,
+      "CommandType": 9,
       "AttributeToClick": {
         "Name": "",
         "Value": ""
@@ -108,11 +108,50 @@
         "Format": null,
         "Apply": false
       },
+	  "SQLObj":{
+	    "DBConnectionString":"data source=UAT-SYX-SQL3;initial catalog=BetGames;MultipleActiveResultSets=True;App=EntityFramework;persist security info=True; Integrated Security=SSPI;",
+		"SqlScriptFullPath":"C:\\dev_code\\infinity\\inifinity_repo\\SampleTests\\BidOrBuy_RegressionPack1\\SampleSqlScript.sql",
+		"ReplaceVariables":[{"name":"TicketNumber","value":"99908300000347"}],
+		"VariableContainerName":"BetGame"
+	  },
       "OverrideErrorOnNotFound": false
+    },
+	{
+      "Value": "",
+      "IDToClick": "",
+      "ClassNameToClick": "",
+      "XPath": "",
+      "Message": "",
+      "ExcelColIndexValue": -1,
+      "CommandType": 10,
+      "AttributeToClick": {
+        "Name": "",
+        "Value": ""
+      },
+      "IndexToClick": 0,
+      "CommandStatus": 0,
+      "ScreenShot": {
+        "Take": false,
+        "Name": "",
+        "Img": null
+      },
+      "AppendRandomToValue": {
+        "Min": 50,
+        "Max": 100,
+        "Apply": false
+      },
+      "Execute": true,
+      "DateNowValue": {
+        "DayAdd": 0,
+        "Format": null,
+        "Apply": false
+      },
+      "OverrideErrorOnNotFound": false,
+	  "VariablesToSet":[{"name":"searchBoxName","value":"1234"},{"name":"searchBoxName2","value":"12344444"}]
     },
     {
       "Value": "watch",
-      "IDToClick": "headerTradeSearchInput",
+      "IDToClick": "VarContainer{searchBoxName}VarContainerDB{BetGame,BetID}",
       "ClassNameToClick": "",
       "XPath": "",
       "Message": "",
