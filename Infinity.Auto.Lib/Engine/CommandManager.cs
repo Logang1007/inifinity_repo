@@ -602,7 +602,9 @@ namespace Infinity.Automation.Lib.Engine
                
                 _portableDataStore.AddTestRunResults(item);
             }
-          
+
+            var chartJsFullPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\Extlibs\\chartv2.js";
+            var testHeaderData =  _portableDataStore.GetChartDataForToday();
             var mainTestDir = Directory.GetParent(_testDirectory).FullName;
             StringBuilder emailBody = new StringBuilder();
             emailBody.AppendLine("<html>");
@@ -615,10 +617,40 @@ namespace Infinity.Automation.Lib.Engine
             emailBody.AppendLine(".failed{font-family:tahoma;color:red;font-weight:bold}");
             emailBody.AppendLine(".table-results{border:solid 1px silver;width:100%}");
             emailBody.AppendLine("</style>");
+            emailBody.AppendLine("<script src=\"chartv2.js\"></script>");
+            emailBody.AppendLine("<script>");
+            emailBody.AppendLine("async function drawCharts(){" + Environment.NewLine);
+            emailBody.AppendLine(" await drawChartToday();" + Environment.NewLine);
+            emailBody.AppendLine("}" + Environment.NewLine);
+            emailBody.AppendLine("async function drawChartToday(){" + Environment.NewLine);
+            emailBody.AppendLine(" var ctxToday = document.getElementById('chartToday').getContext('2d');" + Environment.NewLine);
+            emailBody.AppendLine("  var barChartData = "+JsonConvert.SerializeObject(testHeaderData) +"; " + Environment.NewLine);
+            emailBody.AppendLine("  var chart = new Chart(ctxToday, {" + Environment.NewLine);
+            emailBody.AppendLine("    type: 'bar'," + Environment.NewLine);
+            emailBody.AppendLine("    data: barChartData," + Environment.NewLine);
+            emailBody.AppendLine("   options: {" + Environment.NewLine);
+            emailBody.AppendLine("   title: {" + Environment.NewLine);
+            emailBody.AppendLine("   display: true," + Environment.NewLine);
+            emailBody.AppendLine("   text: 'Tests status for today'" + Environment.NewLine);
+            emailBody.AppendLine("  }," + Environment.NewLine);
+            emailBody.AppendLine("  tooltips: {" + Environment.NewLine);
+            emailBody.AppendLine("  mode: 'index',intersect: false}," + Environment.NewLine);
+            emailBody.AppendLine("  responsive: true," + Environment.NewLine);
+            emailBody.AppendLine("  scales: {" + Environment.NewLine);
+            emailBody.AppendLine("  xAxes: [{" + Environment.NewLine);
+            emailBody.AppendLine("    stacked: true}]," + Environment.NewLine);
+            emailBody.AppendLine("  yAxes: [{" + Environment.NewLine);
+            emailBody.AppendLine("   stacked: true}]," + Environment.NewLine);
+            emailBody.AppendLine("   }" + Environment.NewLine);
+            emailBody.AppendLine("  }" + Environment.NewLine);
+            emailBody.AppendLine("  });" + Environment.NewLine);
+            emailBody.AppendLine("}" + Environment.NewLine);
+            emailBody.AppendLine("</script>");
             emailBody.AppendLine("</head>");
-            emailBody.AppendLine("<body>");
+         
+            emailBody.AppendLine("<body onload=\"drawCharts();\">");
 
-
+            emailBody.AppendLine("<div  style=\"width:75%\"><canvas id=\"chartToday\"></canvas></div>");
 
             emailBody.AppendLine("<div class='med'>Test results:</div><br/><br/>");
             emailBody.AppendLine("<div class='med'>Date:" + DateTime.Now.ToString("dd MMM yyyy HH:mm:ss") + "</div><br/><br/>");
@@ -663,6 +695,11 @@ namespace Infinity.Automation.Lib.Engine
             emailBody.AppendLine("</html>");
             string body = emailBody.ToString();
             string newFolderTestResultsFile = mainTestDir + "\\"+ new DirectoryInfo(_testDirectory).Name + "_Test_Results_" + DateTime.Now.ToString("dd_MMM_yyyy_HH_mm_ss")+".html";
+            string chartJsNewFullPath = mainTestDir + "\\chartv2.js";
+            if (!File.Exists(chartJsNewFullPath))
+            {
+                File.Copy(chartJsFullPath, chartJsNewFullPath);
+            }
             File.WriteAllText(newFolderTestResultsFile, body);
                 
         }
@@ -1115,20 +1152,20 @@ namespace Infinity.Automation.Lib.Engine
             }
         }
 
-        private IWebElement _waitForElementExist(By findBy,int secondsTimeOut, int secondsPoll)
+        private IWebElement _waitForElementExist(RemoteWebDriver driver,By findBy,int secondsTimeOut, int secondsPoll)
         {
            
-            WebDriverWait wait = new WebDriverWait(new SystemClock(), WebDriver, new TimeSpan(0, 0, secondsTimeOut), new TimeSpan(0, 0, secondsPoll));
+            WebDriverWait wait = new WebDriverWait(new SystemClock(), driver, new TimeSpan(0, 0, secondsTimeOut), new TimeSpan(0, 0, secondsPoll));
 
             var elem = wait.Until(ExpectedConditions.ElementExists(findBy));
 
             return elem;
             
         }
-        private ReadOnlyCollection<IWebElement> _waitForElementsExist(By findBy, int secondsTimeOut, int secondsPoll)
+        private ReadOnlyCollection<IWebElement> _waitForElementsExist(RemoteWebDriver driver, By findBy, int secondsTimeOut, int secondsPoll)
         {
 
-            WebDriverWait wait = new WebDriverWait(new SystemClock(), WebDriver, new TimeSpan(0, 0, secondsTimeOut), new TimeSpan(0, 0, secondsPoll));
+            WebDriverWait wait = new WebDriverWait(new SystemClock(), driver, new TimeSpan(0, 0, secondsTimeOut), new TimeSpan(0, 0, secondsPoll));
 
             var elems = wait.Until(ExpectedConditions.PresenceOfAllElementsLocatedBy(findBy)).ToList().AsReadOnly();
 
@@ -1136,17 +1173,84 @@ namespace Infinity.Automation.Lib.Engine
 
         }
 
+        private void _toggleIframe(CommandDTO cmd)
+        {
+            if (cmd.IFrame != null)
+            {
+                if (!string.IsNullOrEmpty(cmd.IFrame.IDToClick))
+                {
+                    WebDriver.SwitchTo().Frame(WebDriver.FindElement(By.Id(cmd.IFrame.IDToClick)));
+                }
+                if (!string.IsNullOrEmpty(cmd.IFrame.ClassNameToClick))
+                {
+                    var by = By.CssSelector("[class*='" + cmd.IFrame.ClassNameToClick + "']");
+                    WebDriver.SwitchTo().Frame(WebDriver.FindElement(by));
+                }
+                if (!string.IsNullOrEmpty(cmd.IFrame.CssSelector))
+                {
+                    var by = By.CssSelector(cmd.IFrame.CssSelector);
+                    if(cmd.IFrame.IndexToFind > -1)
+                    {
+                        var elems = WebDriver.FindElements(by);
+                        WebDriver.SwitchTo().Frame(elems[cmd.IFrame.IndexToFind]);
+                    }
+                    else
+                    {
+                        WebDriver.SwitchTo().Frame(WebDriver.FindElement(by));
+                    }
+                    
+                }
+                if (!string.IsNullOrEmpty(cmd.IFrame.XPath))
+                {
+                    var by = By.XPath(cmd.IFrame.XPath);
+                    if (cmd.IFrame.IndexToFind > -1)
+                    {
+                        var elems = WebDriver.FindElements(by);
+                        WebDriver.SwitchTo().Frame(elems[cmd.IFrame.IndexToFind]);
+                    }
+                    else
+                    {
+                        WebDriver.SwitchTo().Frame(WebDriver.FindElement(by));
+                    }
+
+                }
+                if (cmd.IFrame.AttributeFindBy!=null && !string.IsNullOrEmpty(cmd.IFrame.AttributeFindBy.Name))
+                {
+                    var byAttr = By.XPath(String.Format("//*[contains(@{0},'{1}')]",
+                             cmd.IFrame.AttributeFindBy.Name,
+                             cmd.IFrame.AttributeFindBy.Value));
+                    if (cmd.IFrame.AttributeFindBy.IndexToClick > -1)
+                    {
+                        var elems = WebDriver.FindElements(byAttr);
+                        WebDriver.SwitchTo().Frame(elems[cmd.IFrame.AttributeFindBy.IndexToClick]);
+                    }
+                    else
+                    {
+                        WebDriver.SwitchTo().Frame(WebDriver.FindElement(byAttr));
+                    }
+
+                }
+            }
+            else
+            {
+                WebDriver.SwitchTo().DefaultContent();
+            }
+        }
+
         private IWebElement _findElement(CommandDTO cmd, bool throwError=true)
         {
             int secondsTimeOut = cmd.FindElementMaxRetries;
             int secondsPoll = 2;
+            _toggleIframe(cmd);
+
             if (!string.IsNullOrEmpty(cmd.IDToClick))
             {
                 var by = By.Id(cmd.IDToClick);
-                var elem = WebDriver.FindElement(By.Id(cmd.IDToClick));
+              
+                var elem =  WebDriver.FindElement(By.Id(cmd.IDToClick));
                 if (elem == null)
                 {
-                    elem = _waitForElementExist(by, secondsTimeOut, secondsPoll);
+                    elem = _waitForElementExist(WebDriver,by, secondsTimeOut, secondsPoll);
                     if (elem == null)
                     {
                         if (throwError)
@@ -1170,7 +1274,7 @@ namespace Infinity.Automation.Lib.Engine
                     var elemByClassName = WebDriver.FindElements(by);
                     if(elemByClassName.Count == 0)
                     {
-                        elemByClassName = _waitForElementsExist(by, secondsTimeOut, secondsPoll);
+                        elemByClassName = _waitForElementsExist(WebDriver, by, secondsTimeOut, secondsPoll);
                     }
                    
                     var elem = elemByClassName.Count == 0 ? null : elemByClassName[cmd.ElementIndexToFind];
@@ -1189,7 +1293,7 @@ namespace Infinity.Automation.Lib.Engine
                 {
                     var elem = WebDriver.FindElement(by);
                     if (elem == null) {
-                        elem = _waitForElementExist(by, secondsTimeOut, secondsPoll);
+                        elem = _waitForElementExist(WebDriver, by, secondsTimeOut, secondsPoll);
                     }
                     if (elem == null) {
                         if (throwError)
@@ -1211,7 +1315,7 @@ namespace Infinity.Automation.Lib.Engine
                 var elem = WebDriver.FindElement(by);
                 if(elem == null)
                 {
-                    elem = _waitForElementExist(by, secondsTimeOut, secondsPoll);
+                    elem = _waitForElementExist(WebDriver, by, secondsTimeOut, secondsPoll);
                 }
                 if(elem == null)
                 {
@@ -1235,7 +1339,7 @@ namespace Infinity.Automation.Lib.Engine
                 {
                     if(cmd.AttributeToClick.IndexToClick > -1)
                     {
-                        var elems = _waitForElementsExist(byAttr, secondsTimeOut, secondsPoll);
+                        var elems = _waitForElementsExist(WebDriver, byAttr, secondsTimeOut, secondsPoll);
                         elem = elems[cmd.AttributeToClick.IndexToClick];
 
                     }
@@ -1244,13 +1348,13 @@ namespace Infinity.Automation.Lib.Engine
                        
                         if (cmd.AttributeToClick.IndexToClickRandom != null && cmd.AttributeToClick.IndexToClickRandom.Min > -1)
                         {
-                            var elems = _waitForElementsExist(byAttr, secondsTimeOut, secondsPoll);
+                            var elems = _waitForElementsExist(WebDriver, byAttr, secondsTimeOut, secondsPoll);
                             int rnd = _getRandomValue(cmd.AttributeToClick.IndexToClickRandom.Min, cmd.AttributeToClick.IndexToClickRandom.Max);
                             elem = elems[rnd];
                         }
                         else
                         {
-                            elem = _waitForElementExist(byAttr, secondsTimeOut, secondsPoll);
+                            elem = _waitForElementExist(WebDriver, byAttr, secondsTimeOut, secondsPoll);
                         }
                     }
 
@@ -1291,7 +1395,7 @@ namespace Infinity.Automation.Lib.Engine
                     var elems = WebDriver.FindElements(by);
                     if (elems == null || elems.Count == 0)
                     {
-                        elems = _waitForElementsExist(by, secondsTimeOut, secondsPoll);
+                        elems = _waitForElementsExist(WebDriver, by, secondsTimeOut, secondsPoll);
                     }
 
                     if (elems == null || elems.Count == 0)
@@ -1302,8 +1406,8 @@ namespace Infinity.Automation.Lib.Engine
                         }
                            
                     }
-                    _moveToElement(elem, cmd);
                     elem = elems[cmd.IndexToClick];
+                    _moveToElement(elem, cmd);
                     return elem;
                 }
                 else
@@ -1311,7 +1415,7 @@ namespace Infinity.Automation.Lib.Engine
                     var elem = WebDriver.FindElement(by);
                     if (elem == null)
                     {
-                        elem = _waitForElementExist(by, secondsTimeOut, secondsPoll);
+                        elem = _waitForElementExist(WebDriver, by, secondsTimeOut, secondsPoll);
                     }
                     if (elem == null)
                     {
@@ -1341,7 +1445,7 @@ namespace Infinity.Automation.Lib.Engine
                
                 if (elem == null)
                 {
-                    elem = _waitForElementsExist(by, secondsTimeOut, secondsPoll);
+                    elem = _waitForElementsExist(WebDriver, by, secondsTimeOut, secondsPoll);
                 }
                 if (elem == null)
                 {
@@ -1357,7 +1461,7 @@ namespace Infinity.Automation.Lib.Engine
                 var elem = WebDriver.FindElements(by);
                 if (elem == null)
                 {
-                    elem = _waitForElementsExist(by, secondsTimeOut, secondsPoll);
+                    elem = _waitForElementsExist(WebDriver, by, secondsTimeOut, secondsPoll);
                 }
 
                 if (elem == null)
@@ -1377,7 +1481,7 @@ namespace Infinity.Automation.Lib.Engine
                 var elems = WebDriver.FindElements(by);
                 if (elems == null || elems.Count == 0)
                 {
-                    elems = _waitForElementsExist(by, secondsTimeOut, secondsPoll);
+                    elems = _waitForElementsExist(WebDriver, by, secondsTimeOut, secondsPoll);
                 }
                 if (elems == null || elems.Count == 0)
                 {
@@ -1393,7 +1497,7 @@ namespace Infinity.Automation.Lib.Engine
                 var elems = WebDriver.FindElements(by);
                 if (elems == null || elems.Count == 0)
                 {
-                    elems = _waitForElementsExist(by, secondsTimeOut, secondsPoll);
+                    elems = _waitForElementsExist(WebDriver, by, secondsTimeOut, secondsPoll);
                 }
                 if (elems == null || elems.Count == 0)
                 {
@@ -1411,7 +1515,7 @@ namespace Infinity.Automation.Lib.Engine
                 var elems = WebDriver.FindElements(byAttr);
                 if (elems == null || elems.Count == 0)
                 {
-                    elems = _waitForElementsExist(byAttr, secondsTimeOut, secondsPoll);
+                    elems = _waitForElementsExist(WebDriver, byAttr, secondsTimeOut, secondsPoll);
                 }
                 if (elems == null || elems.Count == 0)
                 {
@@ -1921,7 +2025,9 @@ namespace Infinity.Automation.Lib.Engine
                         cmdTmp.AttributeToClick.IndexToClickRandom = item.AttributeToClick.IndexToClickRandom;
                     }
                     cmdTmp.MoveToElement = cmdExec.MoveToElement;
-
+                    cmdTmp.IFrame = cmdExec.IFrame;
+                    cmdTmp.FindElementMaxRetries = cmdExec.FindElementMaxRetries;
+                    if (item.AttributeToClick == null) { item.AttributeToClick = new AttributeToClick(); }
                     if (string.IsNullOrEmpty(item.AttributeToClick.TextToFind))
                     {
                         var elem = _findElement(cmdTmp);

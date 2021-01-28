@@ -118,6 +118,7 @@
     <Compile Include="Helpers\IScreenRecorderHelper.cs" />
     <Compile Include="Helpers\ScreenRecorderHelper.cs" />
     <Compile Include="Helpers\ScreenRecorderHelperNew.cs" />
+    <Compile Include="Models\ChartDTO.cs" />
     <Compile Include="Models\CommandDTO.cs" />
     <Compile Include="Models\Enums.cs" />
     <Compile Include="Models\TestDetailDTO.cs" />

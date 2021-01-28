@@ -45,6 +45,7 @@ namespace Infinity.Automation.Lib.Models
         public List<ClickDropDown> ClickDropDown { get; set; }
         public AssertElementCount AssertElementCount { get; set; }
         public bool MoveToElement { get; set; } = true;
+        public IFrameObject IFrame { get; set; }
 
         public CommandDTO()
         {
@@ -63,6 +64,7 @@ namespace Infinity.Automation.Lib.Models
             AssertElementValueEquals = new AssertElementValue();
             ClickDropDown = new List<ClickDropDown>();
             AssertElementCount = new AssertElementCount();
+            IFrame = new IFrameObject();
         }
 
     }
@@ -177,6 +179,17 @@ namespace Infinity.Automation.Lib.Models
         public string IDToClick { get; set; }
         public string XPath { get; set; }
         public string CssSelector { get; set; }
+    }
+
+    public class IFrameObject
+    {
+        public string IDToClick { get; set; }
+        public string ClassNameToClick { get; set; }
+        public AttributeToClick AttributeFindBy { get; set; }
+        public string XPath { get; set; }
+        public string CssSelector { get; set; }
+        public int IndexToFind { get; set; } = -1;
+
     }
 
 

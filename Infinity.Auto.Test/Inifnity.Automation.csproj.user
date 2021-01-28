@@ -7,6 +7,6 @@
     <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <StartArguments>C:\dev_code\infinity\inifinity_repo\SampleTests\Hwb_Test_Cases</StartArguments>
+    <StartArguments>C:\dev_code\infinity\inifinity_repo\SampleTests\Hwb_Test_Cases false false</StartArguments>
   </PropertyGroup>
 </Project>

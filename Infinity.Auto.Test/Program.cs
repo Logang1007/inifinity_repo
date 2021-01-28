@@ -3,6 +3,7 @@ using Infinity.Automation.Lib.Engine;
 using Infinity.Automation.Lib.Helpers;
 using Infinity.Automation.Lib.Models;
 using mrpFS.AutoTest;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,7 +39,7 @@ namespace infinity.AutoTest
        private static IScreenRecorderHelper screenRecorderHelper;
         private static IImpersonateUser _impersonateUser;
         private static bool _isDebugInfo = false;
-
+        private static bool _isAutoClose = false;
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -50,10 +51,17 @@ namespace infinity.AutoTest
             if (arguments.Count() > 0)
             {
                 NativeMethods.AllocConsole();
+               
 
                 if(arguments.Count() > 1)
                 {
-                    _isDebugInfo = arguments[0].ToString().ToLower()=="true" || arguments[0].ToString().ToLower() == "1" ? true : false;
+                    _isDebugInfo = arguments[1].ToString().ToLower()=="true" || arguments[1].ToString().ToLower() == "1" ? true : false;
+                    try
+                    {
+                        _isAutoClose= arguments[2].ToString().ToLower() == "true" || arguments[2].ToString().ToLower() == "1" ? true : false;
+                    }
+                    catch { }
+                   
                 }
                     
                 int port = System.Configuration.ConfigurationManager.AppSettings["EmailPortNumber"].ToString() == "" ? 0 : Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["EmailPortNumber"]);
@@ -100,6 +108,8 @@ namespace infinity.AutoTest
                 portableDataStore.DBFullPath = portableDBPath;
                 portableDataStore.EnablePortablDB = System.Configuration.ConfigurationManager.AppSettings["EnablePortableDB"].ToString().ToLower()=="true";
 
+               
+
                 foreach (var dir in dirToUse)
                 {
                     string dirPath = dir;
@@ -127,9 +137,12 @@ namespace infinity.AutoTest
 
                 }
 
-               
 
-                Console.ReadLine();
+                if (!_isAutoClose)
+                {
+                    Console.ReadLine();
+                }
+                
             }
             else
             {
@@ -202,11 +215,13 @@ namespace infinity.AutoTest
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine("Tests completed: FAILED : " + item.TestDetailDTO.Name + " : run number :" + item.TestRunNumber + "." + item.ResponseStatus.ToString() + ":" + item.ResponseMessage);
                         Console.WriteLine("ErrorStack:" + item.ResponseDetail);
+                        System.Environment.ExitCode = Convert.ToInt32(ExitCode.Failed);
                     }
                     else
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine("Tests completed: SUCCESS : " + item.TestDetailDTO.Name + " : run number :" + item.TestRunNumber + "." + item.ResponseStatus.ToString() + ":" + item.ResponseMessage);
+                        System.Environment.ExitCode = Convert.ToInt32(ExitCode.Success);
                     }
                 }
                 
@@ -217,6 +232,7 @@ namespace infinity.AutoTest
             catch (Exception ex)
             {
                 Console.WriteLine("All Tests completed system error:" + ex.Message);
+                System.Environment.ExitCode = Convert.ToInt32(ExitCode.Error);
             }
 
 
@@ -225,8 +241,13 @@ namespace infinity.AutoTest
             Console.WriteLine("--------------------------------------------------------------------------------");
             Console.WriteLine("Press any key to exit");
 
-            //end
-            Console.ReadLine();
         }
+    }
+
+    enum ExitCode : int
+    {
+        Success = 0,
+        Failed = 1,
+        Error = 2,
     }
 }

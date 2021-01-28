@@ -80,7 +80,8 @@
       "OverrideErrorOnNotFound": false,
 	  "VariablesToSet":[
 	  {"name":"newmoburl","value":"https://demo6.hollywoodbets.net/"},
-	  {"name":"default_username","value":"246510"},
+	  {"name":"uaturl1","value":"http://uat-syx-www1:89/"},
+	  {"name":"default_username","value":"163200"},
 	  {"name":"default_userpassword","value":"2468"},
 	  {"name":"db_uat_syx_betgames_conn_string","value":"data source=UAT-SYX-SQL3;initial catalog=BetGames;MultipleActiveResultSets=True;App=EntityFramework;persist security info=True; Integrated Security=SSPI;"}
 	  ]

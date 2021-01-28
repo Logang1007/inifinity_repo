@@ -48,7 +48,7 @@
     },
 	"SimulateNetworkCondition":{Enabled:true,DownloadSpeed:4,UploadSpeed:4,LatencySeconds:0,IsOffline:false},
 	"ShowTestRunningMessage":false,
-	"RunTest":false,
+	"RunTest":true,
   },
   "Commands": [
     {
@@ -142,8 +142,8 @@
       "IDToClick": "",
       "ClassNameToClick": "",
 	  "ClickMany":[
-	  {AttributeToClick:{Name:"alt",Value:"Lucky Numbers",IndexToClick:0}},
-	  {AttributeToClick:{Name:"class",Value:"flag-icon flag-icon-za",IndexToClick:0}},
+	  {AttributeToClick:{Name:"alt",Value:"Lucky Numbers",IndexToClick:0}, WaitAfterSeconds:2},
+	  {AttributeToClick:{Name:"class",Value:"flag-icon flag-icon-za",IndexToClick:0}, WaitAfterSeconds:2},
 		{AttributeToClick:{Name:"class",Value:"lotto-date-and-time",IndexToClick:0}},
 	  
 	  ],
