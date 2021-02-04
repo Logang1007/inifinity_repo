@@ -48,95 +48,10 @@
     },
 	"SimulateNetworkCondition":{Enabled:true,DownloadSpeed:4,UploadSpeed:4,LatencySeconds:0,IsOffline:false},
 	"ShowTestRunningMessage":false,
-	"RunTest":false,
+	"RunTest":true,
   },
   "Commands": [
-    {
-      "Value": "VarContainer{newmoburl}",
-      "IDToClick": "",
-      "ClassNameToClick": "",
-      "XPath": "",
-      "Message": "",
-      "ExcelColIndexValue": -1,
-      "CommandType": 4,
-      "AttributeToClick": {
-        "Name": null,
-        "Value": null
-      },
-      "IndexToClick": 0,
-      "CommandStatus": 0,
-      "ScreenShot": {
-        "Take": false,
-        "Name": null,
-        "Img": null
-      },
-      "AppendRandomToValue": {
-        "Min": 0,
-        "Max": 0,
-        "Apply": false
-      },
-      "Execute": true,
-      "DateNowValue": {
-        "DayAdd": 0,
-        "Format": null,
-        "Apply": false
-      },
-      "OverrideErrorOnNotFound": false
-    },
-	
-	{
-      "Value": "",
-      "IDToClick": "",
-      "ClassNameToClick": "",
-	  "TextToTypeMany":[{AttributeToClick:{Name:"aria-label",Value:"Username"},TextToType:"VarContainer{default_username}"},{AttributeToClick:{Name:"aria-label",Value:"Password"},TextToType:"VarContainer{default_userpassword}"}],
-	  "ElementIndexToFind":1,
-	  "FindElementMaxRetries":5,
-      "XPath": "",
-      "Message": "",
-      "ExcelColIndexValue": -1,
-      "CommandType": 11,
-      "AttributeToClick": {
-        "Name": "",
-        "Value": ""
-      },
-      "IndexToClick": 0,
-      "CommandStatus": 0,
-      "ScreenShot": {
-        "Take": false,
-        "Name": "",
-        "Img": null
-      },
-      "AppendRandomToValue": {
-        "Min": 50,
-        "Max": 100,
-        "Apply": false
-      },
-      "Execute": true,
-      "DateNowValue": {
-        "DayAdd": 0,
-        "Format": null,
-        "Apply": false
-      },
-      "OverrideErrorOnNotFound": false,
-    },
-	{
-      "Value": "",
-      "IDToClick": "",
-      "ClassNameToClick": "",
-	  "ClickMany":[{AttributeToClick:{Name:"class",Value:"checkmark",IndexToClick:0}}],
-	  "CommandType": 12,
-	  "FindElementMaxRetries":5,
-      "OverrideErrorOnNotFound": false,
-    },
-	{
-      "Value": "",
-      "IDToClick": "",
-      "ClassNameToClick": "",
-	  "ClickMany":[{AttributeToClick:{Name:"class",Value:"btn btn-success btn-login",IndexToClick:0}}],
-	  "CommandType": 12,
-	  "FindElementMaxRetries":5,
-      "OverrideErrorOnNotFound": false,
-    },
+    
 	{
       "Value": "",
       "IDToClick": "",

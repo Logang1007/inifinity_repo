@@ -25,7 +25,7 @@ namespace Infinity.Automation.Lib.Models
         public bool Execute { get; set; }
         public int ExcelColIndexValue = -1;
         public DateNowValue DateNowValue { get; set; }
-        public bool OverrideErrorOnNotFound { get; set; }
+        public bool OverrideErrorOnNotFound { get; set; } = false;
         public SQLObj SQLObj { get; set; }
         public List<LookUp> VariablesToSet { get; set; }
         public int ElementIndexToFind { get; set; } = -1;

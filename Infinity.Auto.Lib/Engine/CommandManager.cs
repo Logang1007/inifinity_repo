@@ -267,6 +267,7 @@ namespace Infinity.Automation.Lib.Engine
                 {
                    string testId = Guid.NewGuid().ToString();
                    testObj.TestDetail.TestId = testId;
+                  
                    var stopWatch = Stopwatch.StartNew();
                     try
                     {
@@ -503,7 +504,7 @@ namespace Infinity.Automation.Lib.Engine
                             if (!_isTestIncludeRunning)
                             {
                                 CleanUp();
-                                _variableContainer = new Dictionary<string, Dictionary<string, string>>();
+                               _variableContainer = new Dictionary<string, Dictionary<string, string>>();
                             }
 
 
@@ -518,8 +519,11 @@ namespace Infinity.Automation.Lib.Engine
                         returnValue.ResponseStatus = ResponseStatus.SystemError;
                         returnValue.TestRunNumber = currentTestRunNumber;
                     }
-
-                    CleanUp();
+                    if (!_isTestIncludeRunning)
+                    {
+                        CleanUp();
+                    }
+                   
 
                     if (returnValue.ResponseStatus != ResponseStatus.Success)
                     {
@@ -2266,7 +2270,8 @@ namespace Infinity.Automation.Lib.Engine
                             string orderValue = cmd.AssertElementsOrderByAttribute.OrderValue[orderCount];
                             if(orderValue != innerText)
                             {
-                                throw new Exception(orderValue+" is in the incorrect order. It should be :"+ innerText);
+                                throw new Exception(orderValue + " is in the incorrect order. It should be :" + innerText);
+
                             }
                         }
                        

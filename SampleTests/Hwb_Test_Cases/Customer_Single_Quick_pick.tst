@@ -48,7 +48,7 @@
     },
 	"SimulateNetworkCondition":{Enabled:true,DownloadSpeed:4,UploadSpeed:4,LatencySeconds:0,IsOffline:false},
 	"ShowTestRunningMessage":false,
-	"RunTest":true,
+	"RunTest":false,
   },
   "Commands": [
     {
